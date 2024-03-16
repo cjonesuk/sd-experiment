@@ -1,0 +1,1 @@
+Add stable diffusion checkpoint models in this directory
