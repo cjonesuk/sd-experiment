@@ -1,0 +1,1 @@
+ py -m pip install --upgrade diffusers[torch]    
