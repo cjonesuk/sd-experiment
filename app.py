@@ -16,19 +16,24 @@ analogMadness = "sd15\\analogMadness_v70.safetensors"
 model_path = "models/checkpoints"
 model_full_path = model_path + '/' + cyberrealistic
  
-def generate_image(prompt, negative_prompt, num_inference_steps, guidance_scale):
+async def generate_image(prompt, negative_prompt, num_inference_steps, guidance_scale):
     print("Generating image...")
  
-    with Workflow():
+    img = None
+
+    with Workflow(wait=True, cancel_all=True ) as workflow:
         model, clip, vae = CheckpointLoaderSimple(analogMadness)
         conditioning = CLIPTextEncode(prompt, clip)
         conditioning2 = CLIPTextEncode(negative_prompt, clip)
         latent = EmptyLatentImage(512, 512, 1)
         latent = KSampler(model, 156680208700286, num_inference_steps, guidance_scale, 'euler', 'normal', conditioning, conditioning2, latent, 1)
         image = VAEDecode(latent, vae)
-        SaveImage(image, 'PY_ComfyUI') 
-
-    return None
+        img = SaveImage(image, 'PY_ComfyUI') 
+   
+    thing = img.wait() 
+     
+    return await thing.get(0)
+  
 
 def define_generate_ui():
     with gr.Row():
@@ -42,7 +47,7 @@ def define_generate_ui():
 
             generate = gr.Button("Generate Image")
 
-        res = gr.Image(label="output")
+        res = gr.Image(label="output", )
 
     generate.click(generate_image, inputs=[prompt, negative_prompt, num_inference_steps, guidance_scale], outputs=res)
 
