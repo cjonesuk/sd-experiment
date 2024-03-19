@@ -19,20 +19,18 @@ model_full_path = model_path + '/' + cyberrealistic
 async def generate_image(prompt, negative_prompt, num_inference_steps, guidance_scale):
     print("Generating image...")
  
-    img = None
+    image_batch = None 
 
-    with Workflow(wait=True, cancel_all=True ) as workflow:
+    with Workflow(wait=True, cancel_all=True ):
         model, clip, vae = CheckpointLoaderSimple(analogMadness)
         conditioning = CLIPTextEncode(prompt, clip)
-        conditioning2 = CLIPTextEncode(negative_prompt, clip)
+        negative_conditioning = CLIPTextEncode(negative_prompt, clip)
         latent = EmptyLatentImage(512, 512, 1)
-        latent = KSampler(model, 156680208700286, num_inference_steps, guidance_scale, 'euler', 'normal', conditioning, conditioning2, latent, 1)
+        latent = KSampler(model, 156680208700286, num_inference_steps, guidance_scale, 'euler', 'normal', conditioning, negative_conditioning, latent, 1)
         image = VAEDecode(latent, vae)
-        img = SaveImage(image, 'PY_ComfyUI') 
-   
-    thing = img.wait() 
-     
-    return await thing.get(0)
+        image_batch = SaveImage(image, 'PY_ComfyUI') 
+  
+    return await image_batch.wait().get(0)
   
 
 def define_generate_ui():
