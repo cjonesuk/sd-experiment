@@ -6,9 +6,12 @@ from comfy_script.runtime.nodes import *
 
 seed = 156680208700281
 
+realErsgan_x4plus_model_path = 'RealERSGAN_x4plus.pth'
+universalUpscaler4x = '4x_UniversalUpscalerV2-Sharp_101000_G.pth'
+
 
 class UserInput:
-    def __init__(self, prompt: String, negative_prompt: String):
+    def __init__(self, prompt: str, negative_prompt: str):
         self.prompt = prompt
         self.negative_prompt = negative_prompt
 
@@ -21,7 +24,7 @@ class ModelApplyStageInput:
 
 
 class ModelApplyStageOutput:
-    def __init__(self, model: Model, clip: Clip, vae: Vae, positive: CLIPTextEncode, negative: CLIPTextEncode, ):
+    def __init__(self, model: Model, clip: Clip, vae: Vae, positive: CLIPTextEncode, negative: CLIPTextEncode):
         self.model = model
         self.clip = clip
         self.vae = vae
@@ -29,14 +32,13 @@ class ModelApplyStageOutput:
         self.negative = negative
 
 
+class ImageStageOutput:
+    def __init__(self, image: VAEDecode):
+        self.image = image
+
+
 class ModelApplyStageBuilder:
     def apply_workflow(self, user_input: UserInput, model_input: ModelApplyStageInput):
-        print('model', model_input.model)
-        print('steps', model_input.num_inference_steps)
-        print('guidance', model_input.guidance_scale)
-        print('prompt', user_input.prompt)
-        print('negative_prompt', user_input.negative_prompt)
-
         model, clip, vae = CheckpointLoaderSimple(model_input.model)
         positive_conditioning = CLIPTextEncode(user_input.prompt, clip)
         negative_conditioning = CLIPTextEncode(
@@ -91,6 +93,22 @@ class ImageGenerationStageBuilder:
         return ImageStageOutput(output_image)
 
 
-class ImageStageOutput:
+class UpscaleImageStageOutput:
     def __init__(self, image: VAEDecode):
         self.image = image
+
+
+class UpscaleImageStageBuilder:
+    def upscale_simple(self, image_generation_output: ImageStageOutput):
+        upscaled_image = ImageScaleBy(
+            image=image_generation_output.image, upscale_method='nearest-exact', scale_by=2)
+
+        return UpscaleImageStageOutput(upscaled_image)
+
+    def upscale_extended(self, image_generation_output: ImageStageOutput):
+        upscale_model = UpscaleModelLoader(UpscaleModels.RealESRGAN_x4plus)
+
+        upscaled_image = ImageUpscaleWithModel(
+            upscale_model=upscale_model, image=image_generation_output.image)
+
+        return UpscaleImageStageOutput(upscaled_image)

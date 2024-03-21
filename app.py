@@ -1,4 +1,4 @@
-from modules.image_workflow import ImageGenerationStageBuilder, ModelApplyStageBuilder, ModelApplyStageInput, UserInput
+from modules.image_workflow import ImageGenerationStageBuilder, ModelApplyStageBuilder, UpscaleImageStageBuilder, ModelApplyStageInput, UserInput
 from comfy_script.runtime.nodes import *
 import gradio as gr
 
@@ -21,28 +21,44 @@ model_path = "models/checkpoints"
 model_full_path = model_path + '/' + cyberrealistic
 
 
-async def generate_image(prompt, negative_prompt, num_inference_steps, guidance_scale):
-    print("Generating image...")
-    print(prompt, negative_prompt, num_inference_steps, guidance_scale)
+model_apply = ModelApplyStageBuilder()
+image_generation = ImageGenerationStageBuilder()
+upscaled_image_generation = UpscaleImageStageBuilder()
 
+
+async def generate_image(prompt, negative_prompt, num_inference_steps, guidance_scale):
     image_batch = None
 
+    user_input = UserInput(prompt, negative_prompt)
+    model_input = ModelApplyStageInput(
+        analogMadness, num_inference_steps, guidance_scale)
+
     with Workflow(wait=True, cancel_all=True):
-        user_input = UserInput(prompt, negative_prompt)
-        model_input = ModelApplyStageInput(
-            analogMadness, num_inference_steps, guidance_scale)
-
-        model_apply = ModelApplyStageBuilder()
         models = model_apply.apply_workflow(user_input, model_input)
-
-        image_generation = ImageGenerationStageBuilder()
         output = image_generation.apply_workflow(model_input, models)
-
         image_batch = SaveImage(output.image, 'PY_ComfyUI')
 
-    return await image_batch.wait().get(0)
+    result_image = await image_batch.wait().get(0)
 
-seed = 156680208700281
+    return result_image
+
+
+async def generate_upscaled_image(prompt, negative_prompt, num_inference_steps, guidance_scale):
+    image_batch = None
+
+    user_input = UserInput(prompt, negative_prompt)
+    model_input = ModelApplyStageInput(
+        analogMadness, num_inference_steps, guidance_scale)
+
+    with Workflow(wait=True, cancel_all=True):
+        models = model_apply.apply_workflow(user_input, model_input)
+        output = image_generation.apply_workflow(model_input, models)
+        upscale = upscaled_image_generation.upscale_extended(output)
+        image_batch = SaveImage(upscale.image, 'PY_ComfyUI')
+
+    result_image = await image_batch.wait().get(0)
+
+    return result_image
 
 
 def define_generate_ui():
@@ -59,12 +75,19 @@ def define_generate_ui():
                 guidance_scale = gr.Number(
                     8.0, label="Guidance Scale", minimum=0.0, maximum=20.0, step=0.1)
 
-            generate = gr.Button("Generate Image")
+            generate_image_button = gr.Button("Generate Image")
+            generate_upscaled_image_button = gr.Button(
+                "Generate Upscaled Image")
 
-        res = gr.Image(label="output", )
+        with gr.Column():
+            with gr.Group():
+                result_image = gr.Image(label='Generated Image', )
 
-    generate.click(generate_image, inputs=[
-                   prompt, negative_prompt, num_inference_steps, guidance_scale], outputs=res)
+    generate_image_button.click(generate_image, inputs=[
+        prompt, negative_prompt, num_inference_steps, guidance_scale], outputs=[result_image])
+
+    generate_upscaled_image_button.click(generate_upscaled_image, inputs=[
+        prompt, negative_prompt, num_inference_steps, guidance_scale], outputs=[result_image])
 
 
 with gr.Blocks() as demo:
