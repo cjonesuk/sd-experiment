@@ -48,7 +48,7 @@ class ModelApplyStageBuilder:
 
 
 class ImageGenerationStageBuilder:
-    def apply_workflow(self, model_input: ModelApplyStageInput, models: ModelApplyStageOutput):
+    def generate_with_latent_upscale(self, model_input: ModelApplyStageInput, models: ModelApplyStageOutput):
         stage_one_end = int(model_input.num_inference_steps * 0.6)
         stage_two_start = stage_one_end + 1
 
