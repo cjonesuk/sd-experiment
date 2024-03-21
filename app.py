@@ -1,4 +1,5 @@
-from modules.image_workflow import ImageGenerationStageBuilder, ModelApplyStageBuilder, UpscaleImageStageBuilder, ModelApplyStageInput, UserInput
+from modules.image_generation_tasks import run_generate_image_workflow, run_generate_upscaled_image_workflow
+from modules.image_workflow_builders import ImageGenerationStageBuilder, ModelApplyStageBuilder, UpscaleImageStageBuilder, ModelApplyStageInput, UserInput
 from comfy_script.runtime.nodes import *
 import gradio as gr
 
@@ -12,66 +13,6 @@ from comfy_script.runtime.nodes import *
 
 
 print(os.getcwd())
-
-repo_id = "runwayml/stable-diffusion-v1-5"
-cyberrealistic = "sd15\\cyberrealistic_v42.safetensors"
-analogMadnessInpainting = "sd15/analogMadness_v70-inpainting.safetensors"
-analogMadness = "sd15\\analogMadness_v70.safetensors"
-model_path = "models/checkpoints"
-model_full_path = model_path + '/' + cyberrealistic
-
-
-model_apply = ModelApplyStageBuilder()
-image_generation = ImageGenerationStageBuilder()
-upscaled_image_generation = UpscaleImageStageBuilder()
-
-
-async def run_generate_image_workflow(prompt, negative_prompt, num_inference_steps, guidance_scale):
-    image_batch = None
-
-    user_input = UserInput(prompt, negative_prompt)
-    model_input = ModelApplyStageInput(
-        analogMadness, num_inference_steps, guidance_scale)
-
-    with Workflow(wait=True, cancel_all=True):
-        models = model_apply.apply_workflow(
-            user_input,
-            model_input)
-
-        output = image_generation.generate_with_latent_upscale(
-            model_input,
-            models)
-
-        image_batch = SaveImage(output.image, 'PY_ComfyUI')
-
-    result_image = await image_batch.wait().get(0)
-
-    return result_image
-
-
-async def run_generate_upscaled_image_workflow(prompt, negative_prompt, num_inference_steps, guidance_scale):
-    image_batch = None
-
-    user_input = UserInput(prompt, negative_prompt)
-    model_input = ModelApplyStageInput(
-        analogMadness, num_inference_steps, guidance_scale)
-
-    with Workflow(wait=True, cancel_all=True):
-        models = model_apply.apply_workflow(
-            user_input,
-            model_input)
-
-        output = image_generation.generate_with_latent_upscale(
-            model_input,
-            models)
-
-        upscale = upscaled_image_generation.upscale_extended(output)
-
-        image_batch = SaveImage(upscale.image, 'PY_ComfyUI')
-
-    result_image = await image_batch.wait().get(0)
-
-    return result_image
 
 
 def define_generate_ui():

@@ -14,6 +14,11 @@ comfyui --create-directories
 [ComfyUI Distributed](https://github.com/hiddenswitch/ComfyUI)
 [ComfyScript](https://github.com/Chaoses-Ib/ComfyScript)
 
+### Models
+
+[IP Adapter FaceID](https://huggingface.co/h94/IP-Adapter-FaceID)
+[ControlNet v1.1](https://huggingface.co/nolanaatama/controlnetv1.1)
+
 ## Tasks
 
 - Display output image
@@ -28,3 +33,5 @@ comfyui --create-directories
 - Inpainting workflow
 - Multi stage workflows
 - Pix2Pix?
+
+##

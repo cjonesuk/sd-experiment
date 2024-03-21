@@ -23,6 +23,11 @@ class ModelApplyStageInput:
         self.guidance_scale = guidance_scale
 
 
+class PoseInput:
+    def __init__(self, image: Image):
+        self.image = image
+
+
 class ModelApplyStageOutput:
     def __init__(self, model: Model, clip: Clip, vae: Vae, positive: CLIPTextEncode, negative: CLIPTextEncode):
         self.model = model
@@ -45,6 +50,20 @@ class ModelApplyStageBuilder:
             user_input.negative_prompt, clip)
 
         return ModelApplyStageOutput(model=model, clip=clip, vae=vae, positive=positive_conditioning, negative=negative_conditioning)
+
+
+class PoseApplyStageBuilder:
+    def apply_pose_conditioning(self, models: ModelApplyStageOutput, pose_input: PoseInput):
+        control_net_model = ControlNetLoader(
+            control_net_name=ControlNets.control_v11p_sd15_openpose_fp16)
+
+        conditioning = ControlNetApply(
+            conditioning=models.positive,
+            control_net=control_net_model,
+            image=pose_input.image,
+            strength=1.0)
+
+        return ModelApplyStageOutput(model=models.model, clip=models.clip, vae=models.vae, positive=conditioning, negative=models.negative)
 
 
 class ImageGenerationStageBuilder:
