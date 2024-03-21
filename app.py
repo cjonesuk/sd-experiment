@@ -1,3 +1,4 @@
+from modules.image_workflow import ImageGenerationStageBuilder, ModelApplyStageBuilder, ModelApplyStageInput, UserInput
 from comfy_script.runtime.nodes import *
 import gradio as gr
 
@@ -8,6 +9,7 @@ from comfy_script.runtime import *
 load()
 from comfy_script.runtime.nodes import *
 # autopep8: on
+
 
 print(os.getcwd())
 
@@ -26,61 +28,21 @@ async def generate_image(prompt, negative_prompt, num_inference_steps, guidance_
     image_batch = None
 
     with Workflow(wait=True, cancel_all=True):
-        image_batch = generate_image_stage(
-            prompt, negative_prompt, num_inference_steps, guidance_scale)
+        user_input = UserInput(prompt, negative_prompt)
+        model_input = ModelApplyStageInput(
+            analogMadness, num_inference_steps, guidance_scale)
+
+        model_apply = ModelApplyStageBuilder()
+        models = model_apply.apply_workflow(user_input, model_input)
+
+        image_generation = ImageGenerationStageBuilder()
+        output = image_generation.apply_workflow(model_input, models)
+
+        image_batch = SaveImage(output.image, 'PY_ComfyUI')
 
     return await image_batch.wait().get(0)
 
 seed = 156680208700281
-
-
-def generate_image_stage(prompt, negative_prompt, num_inference_steps, guidance_scale):
-    mid_step = int(num_inference_steps * 0.6)
-
-    print('steps', num_inference_steps)
-    print('mid_step', mid_step)
-
-    model, clip, vae = CheckpointLoaderSimple(analogMadness)
-    conditioning = CLIPTextEncode(prompt, clip)
-    negative_conditioning = CLIPTextEncode(negative_prompt, clip)
-    empty_latent = EmptyLatentImage(512, 512, 1)
-    # latent = KSampler(model, 156680208700289, num_inference_steps, guidance_scale,
-    #                   'euler', 'normal', conditioning, negative_conditioning, empty_latent, 1)
-
-    latent = KSamplerAdvanced(model=model,
-                              noise_seed=seed,
-                              steps=num_inference_steps,
-                              cfg=guidance_scale,
-                              sampler_name='euler',
-                              scheduler='normal',
-                              positive=conditioning,
-                              negative=negative_conditioning,
-                              latent_image=empty_latent,
-                              end_at_step=mid_step)
-
-    upscaled_latent = LatentUpscaleBy(
-        samples=latent,
-        upscale_method='nearest-exact',
-        scale_by=1.5)
-
-    upscaled_latent = KSamplerAdvanced(model=model,
-                                       noise_seed=seed,
-                                       steps=num_inference_steps,
-                                       cfg=guidance_scale,
-                                       sampler_name='euler',
-                                       scheduler='normal',
-                                       positive=conditioning,
-                                       negative=negative_conditioning,
-                                       latent_image=upscaled_latent,
-                                       start_at_step=(mid_step+1))
-
-    image_1 = VAEDecode(latent, vae)
-    image_batch_1 = SaveImage(image_1, 'PY_ComfyUI')
-
-    image_2 = VAEDecode(upscaled_latent, vae)
-    image_batch_2 = SaveImage(image_2, 'PY_ComfyUI')
-
-    return image_batch_2
 
 
 def define_generate_ui():
