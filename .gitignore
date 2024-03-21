@@ -1,8 +1,9 @@
 # Application
 .venv 
-output
-models
-custom_nodes
+output/
+models/
+custom_nodes/
+temp/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
