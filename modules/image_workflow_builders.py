@@ -54,13 +54,15 @@ class ModelApplyStageBuilder:
 
 class PoseApplyStageBuilder:
     def apply_pose_conditioning(self, models: ModelApplyStageOutput, pose_input: PoseInput):
+        pose_image_load = LoadImage(image=pose_input.image)
+
         control_net_model = ControlNetLoader(
             control_net_name=ControlNets.control_v11p_sd15_openpose_fp16)
 
         conditioning = ControlNetApply(
             conditioning=models.positive,
             control_net=control_net_model,
-            image=pose_input.image,
+            image=pose_image_load,
             strength=1.0)
 
         return ModelApplyStageOutput(model=models.model, clip=models.clip, vae=models.vae, positive=conditioning, negative=models.negative)
