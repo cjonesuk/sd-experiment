@@ -1,6 +1,5 @@
 from modules.image_generation_tasks import run_generate_image_workflow, run_generate_upscaled_image_workflow
 from modules.image_with_pose_generation_tasks import run_generate_image_with_pose_workflow
-from modules.image_workflow_builders import ImageGenerationStageBuilder, ModelApplyStageBuilder, UpscaleImageStageBuilder, ModelApplyStageInput, UserInput
 from comfy_script.runtime.nodes import *
 import gradio as gr
 
@@ -31,7 +30,7 @@ def define_generate_with_pose_ui():
                     8.0, label="Guidance Scale", minimum=0.0, maximum=20.0, step=0.1)
 
             with gr.Row():
-                pose_image = gr.Image(label='Pose Image')
+                pose_image = gr.Image(label='Pose Image', type='filepath')
 
             generate_image = gr.Button("Generate Image")
             # generate_upscaled_image = gr.Button(

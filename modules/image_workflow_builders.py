@@ -1,8 +1,10 @@
 # autopep8: off
+import base64
 from comfy_script.runtime import *
 load()
 from comfy_script.runtime.nodes import *
 # autopep8: on
+
 
 seed = 156680208700281
 
@@ -24,8 +26,8 @@ class ModelApplyStageInput:
 
 
 class PoseInput:
-    def __init__(self, image: Image):
-        self.image = image
+    def __init__(self, image_path: str):
+        self.image_path = image_path
 
 
 class ModelApplyStageOutput:
@@ -54,7 +56,7 @@ class ModelApplyStageBuilder:
 
 class PoseApplyStageBuilder:
     def apply_pose_conditioning(self, models: ModelApplyStageOutput, pose_input: PoseInput):
-        pose_image_load = LoadImage(image=pose_input.image)
+        pose_image, pose_mask = LoadImageFromPath(image=pose_input.image_path)
 
         control_net_model = ControlNetLoader(
             control_net_name=ControlNets.control_v11p_sd15_openpose_fp16)
@@ -62,7 +64,7 @@ class PoseApplyStageBuilder:
         conditioning = ControlNetApply(
             conditioning=models.positive,
             control_net=control_net_model,
-            image=pose_image_load,
+            image=pose_image,
             strength=1.0)
 
         return ModelApplyStageOutput(model=models.model, clip=models.clip, vae=models.vae, positive=conditioning, negative=models.negative)
