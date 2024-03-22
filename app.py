@@ -31,6 +31,7 @@ def define_generate_with_pose_ui():
 
             with gr.Row():
                 pose_image = gr.Image(label='Pose Image', type='filepath')
+                face_image = gr.Image(label='Face Image', type='filepath')
 
             generate_image = gr.Button("Generate Image")
             # generate_upscaled_image = gr.Button(
@@ -43,7 +44,7 @@ def define_generate_with_pose_ui():
     generate_image.click(
         run_generate_image_with_pose_workflow,
         inputs=[prompt, negative_prompt,
-                num_inference_steps, guidance_scale, pose_image],
+                num_inference_steps, guidance_scale, pose_image, face_image],
         outputs=[result_image])
 
     # generate_upscaled_image.click(

@@ -27,8 +27,10 @@ ConfigArgParse==1.7
 contourpy==1.2.0
 cryptography==42.0.5
 cycler==0.12.1
+Cython==3.0.9
 decorator==5.1.1
 diffusers==0.27.0
+easydict==1.13
 einops==0.7.0
 exceptiongroup==1.2.0
 executing==2.0.1
@@ -50,6 +52,7 @@ idna==3.6
 imageio==2.34.0
 importlib_metadata==7.0.2
 importlib_resources==6.3.0
+./insightface-0.7.3-cp310-cp310-win_amd64.whl#sha256=47aa0571b2aadd8545d4bc7615dfbc374c10180c283b7ac65058fcb41ed4df86
 ipython==8.22.2
 ipywidgets==8.1.2
 jedi==0.19.1
@@ -75,6 +78,7 @@ multidict==6.0.5
 nest-asyncio==1.6.0
 networkx==3.2.1
 numpy==1.26.4
+onnx==1.15.0
 open-clip-torch==2.24.0
 opencv-python==4.9.0.80
 opencv-python-headless==4.9.0.80
@@ -84,6 +88,7 @@ pamqp==3.3.0
 pandas==2.2.1
 parso==0.8.3
 pillow==10.2.0
+prettytable==3.10.0
 prompt-toolkit==3.0.43
 protobuf==5.26.0
 psutil==5.9.8
@@ -118,6 +123,7 @@ six==1.16.0
 sniffio==1.3.1
 stack-data==0.6.3
 starlette==0.36.3
+StrEnum==0.4.15
 sympy==1.12
 threadpoolctl==3.3.0
 tifffile==2024.2.12

@@ -1,5 +1,5 @@
 # autopep8: off
-from enum import StrEnum
+from strenum import StrEnum
 from comfy_script.runtime import *
 load()
 from comfy_script.runtime.nodes import *

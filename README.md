@@ -8,6 +8,14 @@ A repo for experimenting with stable diffusion workflows
 comfyui --create-directories
 ```
 
+### Insightface
+
+Installing insightface instructions from the Reactor github
+https://github.com/Gourieff/comfyui-reactor-node?tab=readme-ov-file#troubleshooting
+
+https://github.com/Gourieff/Assets/tree/main/Insightface
+[insightface-0.7.3-cp310-cp310-win_amd64.whl]()
+
 ## Links
 
 [ComfyUI](https://github.com/comfyanonymous/ComfyUI)
