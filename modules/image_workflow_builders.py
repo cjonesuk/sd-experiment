@@ -210,6 +210,11 @@ class ImageGenerationStageBuilder:
         return ImageStageOutput(output_image)
 
 
+class ImageSaveStageBuilder:
+    def save_image(self, image_generation_output: ImageStageOutput, filename_prefix: str):
+        return SaveImage(images=image_generation_output.image, filename_prefix=filename_prefix)
+
+
 class UpscaleImageStageBuilder:
     def upscale_simple(self, image_generation_output: ImageStageOutput):
         upscaled_image = ImageScaleBy(

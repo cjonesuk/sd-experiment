@@ -1,4 +1,5 @@
-from modules.image_workflow_builders import FaceIdApplyStageBuilder, FaceInput, FacePreparationStageBuilder, ImageGenerationStageBuilder, ModelApplyStageBuilder, PoseApplyStageBuilder, PoseInput, UpscaleImageStageBuilder, ImageGenerationInput, UserInput
+from strenum import StrEnum
+from modules.image_workflow_builders import FaceIdApplyStageBuilder, FaceInput, FacePreparationStageBuilder, ImageGenerationStageBuilder, ImageSaveStageBuilder, ImageStageOutput, ModelApplyStageBuilder, PoseApplyStageBuilder, PoseInput, UpscaleImageStageBuilder, ImageGenerationInput, UserInput
 
 # autopep8: off
 from comfy_script.runtime import *
@@ -14,27 +15,22 @@ face_preparation = FacePreparationStageBuilder()
 faces = FaceIdApplyStageBuilder()
 image_generation = ImageGenerationStageBuilder()
 upscaled_image_generation = UpscaleImageStageBuilder()
+image_saving = ImageSaveStageBuilder()
+
+
+class GenerateImageWithPoseWorkflowStages(StrEnum):
+    GENERATE_IMAGE = 'generate_image'
+    UPSCALE_IMAGE = 'upscale_image'
 
 
 async def run_generate_image_with_pose_workflow(
-        prompt,
-        negative_prompt,
-        checkpoint,
-        num_inference_steps,
-        guidance_scale,
-        pose_image: Image,
-        face_image: Image):
-    user_input = UserInput(prompt, negative_prompt)
-
-    model_input = ImageGenerationInput(
-        checkpoint,
-        num_inference_steps,
-        guidance_scale)
-
-    pose_input = PoseInput(pose_image)
-    face_input = FaceInput(face_image)
-
-    image_batch = None
+        stage: GenerateImageWithPoseWorkflowStages,
+        user_input: UserInput,
+        model_input: ImageGenerationInput,
+        pose_input: PoseInput,
+        face_input: FaceInput,
+):
+    print('run_generate_image_with_pose_workflow at stage:', stage)
 
     with Workflow(wait=True, cancel_all=True):
         models = model_apply.apply_workflow(
@@ -50,7 +46,11 @@ async def run_generate_image_with_pose_workflow(
             model_input,
             models)
 
-        image_batch = SaveImage(output.image, 'PY_ComfyUI')
+        image_batch = image_saving.save_image(output, 'PY_ComfyUI')
+
+        if (stage == GenerateImageWithPoseWorkflowStages.UPSCALE_IMAGE):
+            upscaled = upscaled_image_generation.upscale_simple(output)
+            image_batch = image_saving.save_image(upscaled, 'PY_ComfyUI')
 
     result_image = await image_batch.wait().get(0)
 
