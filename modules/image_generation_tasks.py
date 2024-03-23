@@ -1,4 +1,4 @@
-from modules.image_workflow_builders import ImageGenerationStageBuilder, ModelApplyStageBuilder, UpscaleImageStageBuilder, ModelApplyStageInput, UserInput
+from modules.image_workflow_builders import ImageGenerationStageBuilder, ModelApplyStageBuilder, UpscaleImageStageBuilder, ImageGenerationInput, UserInput
 
 # autopep8: off
 from comfy_script.runtime import *
@@ -17,7 +17,7 @@ async def run_generate_image_workflow(prompt, negative_prompt, num_inference_ste
     image_batch = None
 
     user_input = UserInput(prompt, negative_prompt)
-    model_input = ModelApplyStageInput(
+    model_input = ImageGenerationInput(
         analogMadness, num_inference_steps, guidance_scale)
 
     with Workflow(wait=True, cancel_all=True):
@@ -40,7 +40,7 @@ async def run_generate_upscaled_image_workflow(prompt, negative_prompt, num_infe
     image_batch = None
 
     user_input = UserInput(prompt, negative_prompt)
-    model_input = ModelApplyStageInput(
+    model_input = ImageGenerationInput(
         analogMadness, num_inference_steps, guidance_scale)
 
     with Workflow(wait=True, cancel_all=True):

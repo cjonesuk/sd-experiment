@@ -1,4 +1,4 @@
-from modules.image_workflow_builders import FaceIdApplyStageBuilder, FaceInput, FacePreparationStageBuilder, ImageGenerationStageBuilder, ModelApplyStageBuilder, PoseApplyStageBuilder, PoseInput, UpscaleImageStageBuilder, ModelApplyStageInput, UserInput
+from modules.image_workflow_builders import FaceIdApplyStageBuilder, FaceInput, FacePreparationStageBuilder, ImageGenerationStageBuilder, ModelApplyStageBuilder, PoseApplyStageBuilder, PoseInput, UpscaleImageStageBuilder, ImageGenerationInput, UserInput
 
 # autopep8: off
 from comfy_script.runtime import *
@@ -16,11 +16,18 @@ image_generation = ImageGenerationStageBuilder()
 upscaled_image_generation = UpscaleImageStageBuilder()
 
 
-async def run_generate_image_with_pose_workflow(prompt, negative_prompt, num_inference_steps, guidance_scale, pose_image: Image, face_image: Image):
+async def run_generate_image_with_pose_workflow(
+        prompt,
+        negative_prompt,
+        checkpoint,
+        num_inference_steps,
+        guidance_scale,
+        pose_image: Image,
+        face_image: Image):
     user_input = UserInput(prompt, negative_prompt)
 
-    model_input = ModelApplyStageInput(
-        analogMadness,
+    model_input = ImageGenerationInput(
+        checkpoint,
         num_inference_steps,
         guidance_scale)
 

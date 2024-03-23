@@ -15,23 +15,46 @@ from comfy_script.runtime.nodes import *
 print(os.getcwd())
 
 
+def subtask_image_generation_input_ui():
+    with gr.Row():
+        checkpoint = gr.Dropdown(
+            choices=Checkpoints, value=Checkpoints.sd15_analogMadness_v70, label="Checkpoint")
+        num_inference_steps = gr.Number(
+            30, label="Steps", minimum=1, maximum=100, step=1)
+        guidance_scale = gr.Number(
+            8.0, label="Guidance Scale", minimum=0.0, maximum=20.0, step=0.1)
+
+    return checkpoint, num_inference_steps, guidance_scale
+
+
+def subtask_prompt_input_ui():
+    with gr.Column():
+        prompt = gr.Textbox("", label="Enter a prompt",
+                            placeholder="a photo of an astronaut riding a horse on mars", lines=3)
+        negative_prompt = gr.Textbox(
+            "", label="Enter a negative prompt", placeholder="low quality, lowres", lines=3)
+
+    return prompt, negative_prompt
+
+
+def subtask_pose_face_input_ui():
+    with gr.Row():
+        pose_image = gr.Image(label='Pose Image', type='filepath')
+        face_image = gr.Image(label='Face Image', type='filepath')
+
+    return pose_image, face_image
+
+
 def define_generate_with_pose_ui():
     with gr.Row():
         with gr.Column():
-            prompt = gr.Textbox("", label="Enter a prompt",
-                                placeholder="a photo of an astronaut riding a horse on mars", lines=3)
-            negative_prompt = gr.Textbox(
-                "", label="Enter a negative prompt", placeholder="low quality, lowres", lines=3)
+            with gr.Accordion(label='Image Properties', open=False):
+                checkpoint, num_inference_steps, guidance_scale = subtask_image_generation_input_ui()
 
-            with gr.Row():
-                num_inference_steps = gr.Number(
-                    30, label="Steps", minimum=1, maximum=100, step=1)
-                guidance_scale = gr.Number(
-                    8.0, label="Guidance Scale", minimum=0.0, maximum=20.0, step=0.1)
-
-            with gr.Row():
-                pose_image = gr.Image(label='Pose Image', type='filepath')
-                face_image = gr.Image(label='Face Image', type='filepath')
+            with gr.Accordion(label='Input'):
+                with gr.Column():
+                    pose_image, face_image = subtask_pose_face_input_ui()
+                    prompt, negative_prompt = subtask_prompt_input_ui()
 
             generate_image = gr.Button("Generate Image")
             # generate_upscaled_image = gr.Button(
@@ -44,7 +67,8 @@ def define_generate_with_pose_ui():
     generate_image.click(
         run_generate_image_with_pose_workflow,
         inputs=[prompt, negative_prompt,
-                num_inference_steps, guidance_scale, pose_image, face_image],
+                checkpoint, num_inference_steps, guidance_scale,
+                pose_image, face_image],
         outputs=[result_image])
 
     # generate_upscaled_image.click(

@@ -8,81 +8,9 @@ from comfy_script.runtime.nodes import *
 
 seed = 156680208700281
 
+
 realErsgan_x4plus_model_path = 'RealERSGAN_x4plus.pth'
 universalUpscaler4x = '4x_UniversalUpscalerV2-Sharp_101000_G.pth'
-
-
-class UserInput:
-    def __init__(self, prompt: str, negative_prompt: str):
-        self.prompt = prompt
-        self.negative_prompt = negative_prompt
-
-
-class ModelApplyStageInput:
-    def __init__(self, model: str, num_inference_steps: int, guidance_scale: float):
-        self.model = model
-        self.num_inference_steps = num_inference_steps
-        self.guidance_scale = guidance_scale
-
-
-class PoseInput:
-    def __init__(self, image_path: str):
-        self.image_path = image_path
-
-
-class FaceInput:
-    def __init__(self, image_path: str):
-        self.image_path = image_path
-
-
-class PreparedFaceOutput:
-    def __init__(self, image: Image):
-        self.image = image
-
-
-class ModelApplyStageOutput:
-    def __init__(self, model: Model, clip: Clip, vae: Vae, positive: CLIPTextEncode, negative: CLIPTextEncode):
-        self.model = model
-        self.clip = clip
-        self.vae = vae
-        self.positive = positive
-        self.negative = negative
-
-
-class ImageStageOutput:
-    def __init__(self, image: VAEDecode):
-        self.image = image
-
-
-class UpscaleImageStageOutput:
-    def __init__(self, image: VAEDecode):
-        self.image = image
-
-
-class ModelApplyStageBuilder:
-    def apply_workflow(self, user_input: UserInput, model_input: ModelApplyStageInput):
-        model, clip, vae = CheckpointLoaderSimple(model_input.model)
-        positive_conditioning = CLIPTextEncode(user_input.prompt, clip)
-        negative_conditioning = CLIPTextEncode(
-            user_input.negative_prompt, clip)
-
-        return ModelApplyStageOutput(model=model, clip=clip, vae=vae, positive=positive_conditioning, negative=negative_conditioning)
-
-
-class PoseApplyStageBuilder:
-    def apply_pose_conditioning(self, models: ModelApplyStageOutput, pose_input: PoseInput):
-        pose_image, pose_mask = LoadImageFromPath(image=pose_input.image_path)
-
-        control_net_model = ControlNetLoader(
-            control_net_name=ControlNets.control_v11p_sd15_openpose_fp16)
-
-        conditioning = ControlNetApply(
-            conditioning=models.positive,
-            control_net=control_net_model,
-            image=pose_image,
-            strength=1.0)
-
-        return ModelApplyStageOutput(model=models.model, clip=models.clip, vae=models.vae, positive=conditioning, negative=models.negative)
 
 
 class IPAdapters(StrEnum):
@@ -131,6 +59,80 @@ faceid_to_lora = {
 }
 
 
+class UserInput:
+    def __init__(self, prompt: str, negative_prompt: str):
+        self.prompt = prompt
+        self.negative_prompt = negative_prompt
+
+
+class ImageGenerationInput:
+    def __init__(self, checkpoint: str, num_inference_steps: int, guidance_scale: float):
+        self.checkpoint = checkpoint
+        self.num_inference_steps = num_inference_steps
+        self.guidance_scale = guidance_scale
+
+
+class PoseInput:
+    def __init__(self, image_path: str):
+        self.image_path = image_path
+
+
+class FaceInput:
+    def __init__(self, image_path: str):
+        self.image_path = image_path
+
+
+class PreparedFaceOutput:
+    def __init__(self, image: Image):
+        self.image = image
+
+
+class ModelApplyStageOutput:
+    def __init__(self, model: Model, clip: Clip, vae: Vae, positive: CLIPTextEncode, negative: CLIPTextEncode):
+        self.model = model
+        self.clip = clip
+        self.vae = vae
+        self.positive = positive
+        self.negative = negative
+
+
+class ImageStageOutput:
+    def __init__(self, image: VAEDecode):
+        self.image = image
+
+
+class UpscaleImageStageOutput:
+    def __init__(self, image: VAEDecode):
+        self.image = image
+
+
+class ModelApplyStageBuilder:
+    def apply_workflow(self, user_input: UserInput, image_generation_input: ImageGenerationInput):
+        model, clip, vae = CheckpointLoaderSimple(
+            ckpt_name=image_generation_input.checkpoint)
+        positive_conditioning = CLIPTextEncode(user_input.prompt, clip)
+        negative_conditioning = CLIPTextEncode(
+            user_input.negative_prompt, clip)
+
+        return ModelApplyStageOutput(model=model, clip=clip, vae=vae, positive=positive_conditioning, negative=negative_conditioning)
+
+
+class PoseApplyStageBuilder:
+    def apply_pose_conditioning(self, models: ModelApplyStageOutput, pose_input: PoseInput):
+        pose_image, pose_mask = LoadImageFromPath(image=pose_input.image_path)
+
+        control_net_model = ControlNetLoader(
+            control_net_name=ControlNets.control_v11p_sd15_openpose_fp16)
+
+        conditioning = ControlNetApply(
+            conditioning=models.positive,
+            control_net=control_net_model,
+            image=pose_image,
+            strength=1.0)
+
+        return ModelApplyStageOutput(model=models.model, clip=models.clip, vae=models.vae, positive=conditioning, negative=models.negative)
+
+
 class FacePreparationStageBuilder:
     def prepare_face(self, face_input: FaceInput):
         face_image, face_mask = LoadImageFromPath(image=face_input.image_path)
@@ -167,13 +169,9 @@ class FaceIdApplyStageBuilder:
 
 
 class ImageGenerationStageBuilder:
-    def generate_with_latent_upscale(self, model_input: ModelApplyStageInput, models: ModelApplyStageOutput):
+    def generate_with_latent_upscale(self, model_input: ImageGenerationInput, models: ModelApplyStageOutput):
         stage_one_end = int(model_input.num_inference_steps * 0.6)
         stage_two_start = stage_one_end + 1
-
-        print('steps', model_input.num_inference_steps)
-        print('stage_one_end', stage_one_end)
-        print('stage_two_start', stage_two_start)
 
         empty_latent = EmptyLatentImage(512, 512, 1)
 
