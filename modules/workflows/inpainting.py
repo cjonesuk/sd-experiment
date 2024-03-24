@@ -26,7 +26,8 @@ from comfy_script.runtime.nodes import (LoadImageMask,
                                         SaveImage, 
                                         ControlNetLoader, 
                                         ControlNets, 
-                                        ControlNetApply)
+                                        ControlNetApply,
+                                        DWPreprocessor)
 # # autopep8: on
 
 
@@ -69,7 +70,7 @@ async def run_inpaint_workflow(
                                                   crop_pad_position=0.5,
                                                   pad_feathering=20)
 
-        dw_img, dw_kp = Preprocessor(
+        dw_img, dw_kp = DWPreprocessor(
             image=input_image, detect_face=True, detect_body=True, detect_hand=False, resolution=512)
 
         control_net_model = ControlNetLoader(
