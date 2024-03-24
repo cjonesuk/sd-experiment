@@ -1,5 +1,6 @@
 # Application
 .venv 
+input/
 output/
 models/
 custom_nodes/
