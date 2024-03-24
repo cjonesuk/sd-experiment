@@ -1,6 +1,6 @@
-from modules.ImageGenerationStageBuilder import ImageGenerationStageBuilder
-from modules.ModelApplyStageBuilder import ModelApplyStageBuilder
-from modules.UpscaleImageStageBuilder import UpscaleImageStageBuilder
+from modules.workflow_builders.ImageGenerationStageBuilder import ImageGenerationStageBuilder
+from modules.workflow_builders.ModelApplyStageBuilder import ModelApplyStageBuilder
+from modules.workflow_builders.UpscaleImageStageBuilder import UpscaleImageStageBuilder
 from modules.types import ImageGenerationInput, UserInput
 
 # autopep8: off

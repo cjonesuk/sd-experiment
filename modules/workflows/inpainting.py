@@ -1,12 +1,12 @@
 
 from strenum import StrEnum
-from modules.FaceIdApplyStageBuilder import FaceIdApplyStageBuilder
-from modules.FacePreparationStageBuilder import FacePreparationStageBuilder
-from modules.ImageGenerationStageBuilder import ImageGenerationStageBuilder
-from modules.ImageSaveStageBuilder import ImageSaveStageBuilder
-from modules.ModelApplyStageBuilder import ModelApplyStageBuilder
-from modules.PoseApplyStageBuilder import PoseApplyStageBuilder
-from modules.UpscaleImageStageBuilder import UpscaleImageStageBuilder
+from modules.workflow_builders.FaceIdApplyStageBuilder import FaceIdApplyStageBuilder
+from modules.workflow_builders.FacePreparationStageBuilder import FacePreparationStageBuilder
+from modules.workflow_builders.ImageGenerationStageBuilder import ImageGenerationStageBuilder
+from modules.workflow_builders.ImageSaveStageBuilder import ImageSaveStageBuilder
+from modules.workflow_builders.ModelApplyStageBuilder import ModelApplyStageBuilder
+from modules.workflow_builders.PoseApplyStageBuilder import PoseApplyStageBuilder
+from modules.workflow_builders.UpscaleImageStageBuilder import UpscaleImageStageBuilder
 from modules.types import (FaceInput,
                            ImageStageOutput,
                            InpaintInput,
@@ -72,7 +72,7 @@ async def run_inpaint_workflow(
         image_batch = SaveImage(
             images=image_output.image, filename_prefix='test')
 
-    print(wf.api_format_json())
+    # print(wf.api_format_json())
     result_image = await image_batch.wait().get(0)
 
     return result_image

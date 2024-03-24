@@ -1,12 +1,12 @@
-from modules.image_generation_tasks import run_generate_image_workflow, run_generate_upscaled_image_workflow
-from modules.image_with_pose_generation_tasks import GenerateImageWithPoseWorkflowStages, run_generate_image_with_pose_workflow
+from modules.types import FaceInput, ImageGenerationInput, InpaintInput, PoseInput, UserInput
+from modules.workflows.image import run_generate_image_workflow, run_generate_upscaled_image_workflow
+from modules.workflows.image_with_pose import GenerateImageWithPoseWorkflowStages, run_generate_image_with_pose_workflow
+from modules.workflows.inpainting import InpaintStages, run_inpaint_workflow
+
 from comfy_script.runtime.nodes import *
 import gradio as gr
 
 import os
-
-from modules.types import FaceInput, ImageGenerationInput, InpaintInput, PoseInput, UserInput
-from modules.inpaint_tasks import InpaintStages, run_inpaint_workflow
 
 
 print(os.getcwd())

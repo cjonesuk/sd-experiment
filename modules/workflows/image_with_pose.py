@@ -1,11 +1,11 @@
 from strenum import StrEnum
-from modules.FaceIdApplyStageBuilder import FaceIdApplyStageBuilder
-from modules.FacePreparationStageBuilder import FacePreparationStageBuilder
-from modules.ImageGenerationStageBuilder import ImageGenerationStageBuilder
-from modules.ImageSaveStageBuilder import ImageSaveStageBuilder
-from modules.ModelApplyStageBuilder import ModelApplyStageBuilder
-from modules.PoseApplyStageBuilder import PoseApplyStageBuilder
-from modules.UpscaleImageStageBuilder import UpscaleImageStageBuilder
+from modules.workflow_builders.FaceIdApplyStageBuilder import FaceIdApplyStageBuilder
+from modules.workflow_builders.FacePreparationStageBuilder import FacePreparationStageBuilder
+from modules.workflow_builders.ImageGenerationStageBuilder import ImageGenerationStageBuilder
+from modules.workflow_builders.ImageSaveStageBuilder import ImageSaveStageBuilder
+from modules.workflow_builders.ModelApplyStageBuilder import ModelApplyStageBuilder
+from modules.workflow_builders.PoseApplyStageBuilder import PoseApplyStageBuilder
+from modules.workflow_builders.UpscaleImageStageBuilder import UpscaleImageStageBuilder
 from modules.types import FaceInput, ImageStageOutput, PoseInput, ImageGenerationInput, UserInput
 
 # autopep8: off
