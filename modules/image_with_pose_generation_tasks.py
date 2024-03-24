@@ -7,8 +7,6 @@ load()
 from comfy_script.runtime.nodes import *
 # autopep8: on
 
-analogMadness = "sd15\\analogMadness_v70.safetensors"
-
 model_apply = ModelApplyStageBuilder()
 poses = PoseApplyStageBuilder()
 face_preparation = FacePreparationStageBuilder()
@@ -33,7 +31,7 @@ async def run_generate_image_with_pose_workflow(
     print('run_generate_image_with_pose_workflow at stage:', stage)
 
     with Workflow(wait=True, cancel_all=True):
-        models = model_apply.apply_workflow(
+        models = model_apply.load(
             user_input,
             model_input)
 

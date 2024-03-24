@@ -29,6 +29,8 @@ https://github.com/Gourieff/Assets/tree/main/Insightface
 
 ## Tasks
 
+- Change temp directory or stop using temp files for images
+  C:\Users\USERNAME\AppData\Local\Temp\gradio
 - Display output image
 - Display progress
 - Checkpoint selection UI

@@ -72,6 +72,12 @@ class ImageGenerationInput:
         self.guidance_scale = guidance_scale
 
 
+class InpaintInput:
+    def __init__(self, image_path: str, mask_path: str):
+        self.image_path = image_path
+        self.mask_path = mask_path
+
+
 class PoseInput:
     def __init__(self, image_path: str):
         self.image_path = image_path
@@ -107,7 +113,7 @@ class UpscaleImageStageOutput:
 
 
 class ModelApplyStageBuilder:
-    def apply_workflow(self, user_input: UserInput, image_generation_input: ImageGenerationInput):
+    def load(self, user_input: UserInput, image_generation_input: ImageGenerationInput):
         model, clip, vae = CheckpointLoaderSimple(
             ckpt_name=image_generation_input.checkpoint)
         positive_conditioning = CLIPTextEncode(user_input.prompt, clip)
@@ -169,6 +175,23 @@ class FaceIdApplyStageBuilder:
 
 
 class ImageGenerationStageBuilder:
+    def inpaint(self, model_input: ImageGenerationInput, models: ModelApplyStageOutput, latent_input: Latent):
+        latent = KSamplerAdvanced(model=models.model,
+                                  noise_seed=seed,
+                                  steps=model_input.num_inference_steps,
+                                  cfg=model_input.guidance_scale,
+                                  sampler_name='euler',
+                                  scheduler='normal',
+                                  positive=models.positive,
+                                  negative=models.negative,
+                                  latent_image=latent_input,
+                                  end_at_step=model_input.num_inference_steps)
+
+        output_image = VAEDecode(latent, models.vae)
+        PreviewImage(output_image)
+
+        return ImageStageOutput(output_image)
+
     def generate_with_latent_upscale(self, model_input: ImageGenerationInput, models: ModelApplyStageOutput):
         stage_one_end = int(model_input.num_inference_steps * 0.6)
         stage_two_start = stage_one_end + 1

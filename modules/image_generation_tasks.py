@@ -21,7 +21,7 @@ async def run_generate_image_workflow(prompt, negative_prompt, num_inference_ste
         analogMadness, num_inference_steps, guidance_scale)
 
     with Workflow(wait=True, cancel_all=True):
-        models = model_apply.apply_workflow(
+        models = model_apply.load(
             user_input,
             model_input)
 
@@ -44,7 +44,7 @@ async def run_generate_upscaled_image_workflow(prompt, negative_prompt, num_infe
         analogMadness, num_inference_steps, guidance_scale)
 
     with Workflow(wait=True, cancel_all=True):
-        models = model_apply.apply_workflow(
+        models = model_apply.load(
             user_input,
             model_input)
 
