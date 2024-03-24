@@ -36,6 +36,13 @@ class PoseInput:
         self.image_path = image_path
 
 
+class PoseEstimationInput:
+    def __init__(self, detect_face: bool, detect_body: bool, detect_hands: bool):
+        self.detect_face = detect_face
+        self.detect_body = detect_body
+        self.detect_hands = detect_hands
+
+
 class FaceInput:
     def __init__(self, image_path: str):
         self.image_path = image_path

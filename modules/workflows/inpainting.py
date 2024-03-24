@@ -10,7 +10,7 @@ from modules.workflow_builders.PoseApplyStageBuilder import PoseApplyStageBuilde
 from modules.workflow_builders.UpscaleImageStageBuilder import UpscaleImageStageBuilder
 from modules.types import (FaceInput,
                            ImageStageOutput,
-                           InpaintInput, ModelApplyStageOutput,
+                           InpaintInput, ModelApplyStageOutput, PoseEstimationInput,
                            PoseInput,
                            ImageGenerationInput,
                            UserInput
@@ -46,6 +46,7 @@ async def run_inpaint_workflow(
         stage: InpaintStages,
         user_input: UserInput,
         model_input: ImageGenerationInput,
+        pose_estimation_input: PoseEstimationInput,
         inpaint_input: InpaintInput,
 ):
     print('run_inpaint_workflow at stage:', stage)
@@ -70,20 +71,25 @@ async def run_inpaint_workflow(
                                                   crop_pad_position=0.5,
                                                   pad_feathering=20)
 
-        dw_img, dw_kp = DWPreprocessor(
-            image=input_image, detect_face=True, detect_body=True, detect_hand=False, resolution=512)
+        dw_img, dw_kp = DWPreprocessor(image=input_image,
+                                       detect_face=pose_estimation_input.detect_face,
+                                       detect_body=pose_estimation_input.detect_body,
+                                       detect_hand=pose_estimation_input.detect_hands,
+                                       resolution=512)
 
         control_net_model = ControlNetLoader(
             control_net_name=ControlNets.control_v11p_sd15_openpose_fp16)
 
-        conditioning = ControlNetApply(
-            conditioning=models.positive,
-            control_net=control_net_model,
-            image=dw_img,
-            strength=1.0)
+        conditioning = ControlNetApply(conditioning=models.positive,
+                                       control_net=control_net_model,
+                                       image=dw_img,
+                                       strength=0.5)
 
-        models = ModelApplyStageOutput(model=models.model, clip=models.clip,
-                                       vae=models.vae, positive=conditioning, negative=models.negative)
+        models = ModelApplyStageOutput(model=models.model,
+                                       clip=models.clip,
+                                       vae=models.vae,
+                                       positive=conditioning,
+                                       negative=models.negative)
 
         latent = VAEEncodeForInpaint(pixels=resized_image,
                                      mask=resized_mask,
@@ -94,8 +100,8 @@ async def run_inpaint_workflow(
                                                 models=models,
                                                 latent_input=latent)
 
-        image_batch = SaveImage(
-            images=image_output.image, filename_prefix='test')
+        image_batch = SaveImage(images=image_output.image,
+                                filename_prefix='test')
 
     # print(wf.api_format_json())
     result_image = await image_batch.wait().get(0)

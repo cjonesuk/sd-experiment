@@ -1,6 +1,6 @@
 import gradio as gr
 from modules.ui.inputs import define_prompt_input_ui, define_model_input_ui
-from modules.types import ImageGenerationInput, InpaintInput, UserInput
+from modules.types import ImageGenerationInput, InpaintInput, PoseEstimationInput, UserInput
 from modules.workflows.inpainting import InpaintStages, run_inpaint_workflow
 
 # autopep8: off
@@ -18,20 +18,22 @@ async def handle_begin_click(input_image):
     }
 
 
-async def handle_inpaint_click(
-        stage: InpaintStages,
-        prompt,
-        negative_prompt,
-        checkpoint,
-        num_inference_steps,
-        guidance_scale,
-        input_image_mask):
+async def handle_inpaint_click(stage: InpaintStages,
+                               prompt,
+                               negative_prompt,
+                               checkpoint,
+                               num_inference_steps,
+                               guidance_scale,
+                               input_image_mask):
     user_input = UserInput(prompt, negative_prompt)
 
-    model_input = ImageGenerationInput(
-        checkpoint,
-        num_inference_steps,
-        guidance_scale)
+    model_input = ImageGenerationInput(checkpoint,
+                                       num_inference_steps,
+                                       guidance_scale)
+
+    pose_estimation_input = PoseEstimationInput(detect_body=True,
+                                                detect_face=True,
+                                                detect_hands=False)
 
     image = input_image_mask["background"]
     image_mask = input_image_mask['layers'][0]
@@ -42,13 +44,22 @@ async def handle_inpaint_click(
         stage,
         user_input,
         model_input,
+        pose_estimation_input,
         inpaint_input)
 
 
-def define_inpaint_ui():
-    with gr.Row():
-        inpaint_stage = gr.State(value=InpaintStages.INPAINT)
+async def handle_accept_click(result_image: Image):
+    return {
+        "background": result_image,
+        'layers': [],
+        'composite': None
+    }
 
+
+def define_inpaint_ui():
+    inpaint_stage = gr.State(value=InpaintStages.INPAINT)
+
+    with gr.Row():
         with gr.Column():
             with gr.Accordion(label='Input Image', open=True):
                 with gr.Column():
@@ -70,17 +81,20 @@ def define_inpaint_ui():
         with gr.Column():
             with gr.Group():
                 result_image = gr.Image(label='Generated Image', )
+                result_accept = gr.Button('Accept Change')
 
-    begin_input_image.click(
-        handle_begin_click,
-        inputs=[input_image],
-        outputs=[input_image_mask]
-    )
+    begin_input_image.click(handle_begin_click,
+                            inputs=[input_image],
+                            outputs=[input_image_mask]
+                            )
 
-    inpaint_image.click(
-        handle_inpaint_click,
-        inputs=[inpaint_stage,
-                prompt, negative_prompt,
-                checkpoint, num_inference_steps, guidance_scale,
-                input_image_mask],
-        outputs=[result_image])
+    result_accept.click(handle_accept_click,
+                        inputs=[result_image],
+                        outputs=[input_image_mask])
+
+    inpaint_image.click(handle_inpaint_click,
+                        inputs=[inpaint_stage,
+                                prompt, negative_prompt,
+                                checkpoint, num_inference_steps, guidance_scale,
+                                input_image_mask],
+                        outputs=[result_image])
