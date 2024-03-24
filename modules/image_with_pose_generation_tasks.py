@@ -1,5 +1,12 @@
 from strenum import StrEnum
-from modules.image_workflow_builders import FaceIdApplyStageBuilder, FaceInput, FacePreparationStageBuilder, ImageGenerationStageBuilder, ImageSaveStageBuilder, ImageStageOutput, ModelApplyStageBuilder, PoseApplyStageBuilder, PoseInput, UpscaleImageStageBuilder, ImageGenerationInput, UserInput
+from modules.FaceIdApplyStageBuilder import FaceIdApplyStageBuilder
+from modules.FacePreparationStageBuilder import FacePreparationStageBuilder
+from modules.ImageGenerationStageBuilder import ImageGenerationStageBuilder
+from modules.ImageSaveStageBuilder import ImageSaveStageBuilder
+from modules.ModelApplyStageBuilder import ModelApplyStageBuilder
+from modules.PoseApplyStageBuilder import PoseApplyStageBuilder
+from modules.UpscaleImageStageBuilder import UpscaleImageStageBuilder
+from modules.types import FaceInput, ImageStageOutput, PoseInput, ImageGenerationInput, UserInput
 
 # autopep8: off
 from comfy_script.runtime import *

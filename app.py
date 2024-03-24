@@ -5,7 +5,7 @@ import gradio as gr
 
 import os
 
-from modules.image_workflow_builders import FaceInput, ImageGenerationInput, InpaintInput, PoseInput, UserInput
+from modules.types import FaceInput, ImageGenerationInput, InpaintInput, PoseInput, UserInput
 from modules.inpaint_tasks import InpaintStages, run_inpaint_workflow
 
 

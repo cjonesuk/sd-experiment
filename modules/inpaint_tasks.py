@@ -1,23 +1,23 @@
 
 from strenum import StrEnum
-from modules.image_workflow_builders import (FaceIdApplyStageBuilder,
-                                             FaceInput,
-                                             FacePreparationStageBuilder,
-                                             ImageGenerationStageBuilder,
-                                             ImageSaveStageBuilder,
-                                             ImageStageOutput,
-                                             InpaintInput,
-                                             ModelApplyStageBuilder,
-                                             PoseApplyStageBuilder,
-                                             PoseInput,
-                                             UpscaleImageStageBuilder,
-                                             ImageGenerationInput,
-                                             UserInput
-                                             )
+from modules.FaceIdApplyStageBuilder import FaceIdApplyStageBuilder
+from modules.FacePreparationStageBuilder import FacePreparationStageBuilder
+from modules.ImageGenerationStageBuilder import ImageGenerationStageBuilder
+from modules.ImageSaveStageBuilder import ImageSaveStageBuilder
+from modules.ModelApplyStageBuilder import ModelApplyStageBuilder
+from modules.PoseApplyStageBuilder import PoseApplyStageBuilder
+from modules.UpscaleImageStageBuilder import UpscaleImageStageBuilder
+from modules.types import (FaceInput,
+                           ImageStageOutput,
+                           InpaintInput,
+                           PoseInput,
+                           ImageGenerationInput,
+                           UserInput
+                           )
 # autopep8: off
 from comfy_script.runtime import *
 load()
-from comfy_script.runtime.nodes import *
+from comfy_script.runtime.nodes import LoadImageMask, LoadImageFromPath, InvertMask, ImageResize, VAEEncodeForInpaint, SaveImage
 # autopep8: on
 
 

@@ -1,4 +1,7 @@
-from modules.image_workflow_builders import ImageGenerationStageBuilder, ModelApplyStageBuilder, UpscaleImageStageBuilder, ImageGenerationInput, UserInput
+from modules.ImageGenerationStageBuilder import ImageGenerationStageBuilder
+from modules.ModelApplyStageBuilder import ModelApplyStageBuilder
+from modules.UpscaleImageStageBuilder import UpscaleImageStageBuilder
+from modules.types import ImageGenerationInput, UserInput
 
 # autopep8: off
 from comfy_script.runtime import *
