@@ -59,8 +59,8 @@ async def handle_accept_click(result_image: Image):
 def define_inpaint_ui():
     inpaint_stage = gr.State(value=InpaintStages.INPAINT)
 
-    with gr.Row():
-        with gr.Column():
+    with gr.Tabs():
+        with gr.Tab(label='Input'):
             with gr.Accordion(label='Input Image', open=True):
                 with gr.Column():
                     input_image = gr.Image(
@@ -70,18 +70,20 @@ def define_inpaint_ui():
             with gr.Accordion(label='Image Properties', open=False):
                 checkpoint, num_inference_steps, guidance_scale = define_model_input_ui()
 
-            with gr.Accordion(label='Input', open=False):
+        with gr.Tab('Inpaint'):
+            with gr.Row():
                 with gr.Column():
-                    input_image_mask = gr.ImageMask(
-                        label='Input Image', type='filepath')
-                    prompt, negative_prompt = define_prompt_input_ui()
+                    with gr.Group():
+                        input_image_mask = gr.ImageMask(
+                            label='Input Image', type='filepath')
+                        prompt, negative_prompt = define_prompt_input_ui()
 
-            inpaint_image = gr.Button("Inpaint")
+                        inpaint_image = gr.Button("Inpaint")
 
-        with gr.Column():
-            with gr.Group():
-                result_image = gr.Image(label='Generated Image', )
-                result_accept = gr.Button('Accept Change')
+                with gr.Column():
+                    with gr.Group():
+                        result_image = gr.Image(label='Generated Image', )
+                        result_accept = gr.Button('Accept Change')
 
     begin_input_image.click(handle_begin_click,
                             inputs=[input_image],
