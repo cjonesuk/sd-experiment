@@ -1,5 +1,6 @@
 
 from strenum import StrEnum
+from custom_nodes.comfyui_controlnet_aux.src.controlnet_aux.mesh_graphormer.depth_preprocessor import Preprocessor
 from modules.workflow_builders.FaceIdApplyStageBuilder import FaceIdApplyStageBuilder
 from modules.workflow_builders.FacePreparationStageBuilder import FacePreparationStageBuilder
 from modules.workflow_builders.ImageGenerationStageBuilder import ImageGenerationStageBuilder
@@ -9,16 +10,24 @@ from modules.workflow_builders.PoseApplyStageBuilder import PoseApplyStageBuilde
 from modules.workflow_builders.UpscaleImageStageBuilder import UpscaleImageStageBuilder
 from modules.types import (FaceInput,
                            ImageStageOutput,
-                           InpaintInput,
+                           InpaintInput, ModelApplyStageOutput,
                            PoseInput,
                            ImageGenerationInput,
                            UserInput
                            )
-# autopep8: off
-from comfy_script.runtime import *
+# # autopep8: off
+from comfy_script.runtime import Workflow, load
 load()
-from comfy_script.runtime.nodes import LoadImageMask, LoadImageFromPath, InvertMask, ImageResize, VAEEncodeForInpaint, SaveImage
-# autopep8: on
+from comfy_script.runtime.nodes import (LoadImageMask, 
+                                        LoadImageFromPath, 
+                                        InvertMask, 
+                                        ImageResize, 
+                                        VAEEncodeForInpaint, 
+                                        SaveImage, 
+                                        ControlNetLoader, 
+                                        ControlNets, 
+                                        ControlNetApply)
+# # autopep8: on
 
 
 model_apply = ModelApplyStageBuilder()
@@ -59,6 +68,21 @@ async def run_inpaint_workflow(
                                                   resize_mode='any',
                                                   crop_pad_position=0.5,
                                                   pad_feathering=20)
+
+        dw_img, dw_kp = Preprocessor(
+            image=input_image, detect_face=True, detect_body=True, detect_hand=False, resolution=512)
+
+        control_net_model = ControlNetLoader(
+            control_net_name=ControlNets.control_v11p_sd15_openpose_fp16)
+
+        conditioning = ControlNetApply(
+            conditioning=models.positive,
+            control_net=control_net_model,
+            image=dw_img,
+            strength=1.0)
+
+        models = ModelApplyStageOutput(model=models.model, clip=models.clip,
+                                       vae=models.vae, positive=conditioning, negative=models.negative)
 
         latent = VAEEncodeForInpaint(pixels=resized_image,
                                      mask=resized_mask,

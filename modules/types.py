@@ -47,7 +47,7 @@ class PreparedFaceOutput:
 
 
 class ModelApplyStageOutput:
-    def __init__(self, model: Model, clip: Clip, vae: Vae, positive: CLIPTextEncode, negative: CLIPTextEncode):
+    def __init__(self, model: Model, clip: Clip, vae: Vae, positive: Conditioning, negative: Conditioning):
         self.model = model
         self.clip = clip
         self.vae = vae
