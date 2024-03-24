@@ -1,45 +1,19 @@
+import os
+import gradio as gr
+from modules.ui.inputs import define_pose_and_face_input_ui, define_prompt_input_ui, define_model_input_ui
 from modules.types import FaceInput, ImageGenerationInput, InpaintInput, PoseInput, UserInput
 from modules.workflows.image import run_generate_image_workflow, run_generate_upscaled_image_workflow
 from modules.workflows.image_with_pose import GenerateImageWithPoseWorkflowStages, run_generate_image_with_pose_workflow
 from modules.workflows.inpainting import InpaintStages, run_inpaint_workflow
 
+# autopep8: off
+from comfy_script.runtime import *
+load()
 from comfy_script.runtime.nodes import *
-import gradio as gr
-
-import os
+# autopep8: on
 
 
 print(os.getcwd())
-
-
-def subtask_image_generation_input_ui():
-    with gr.Row():
-        checkpoint = gr.Dropdown(
-            choices=Checkpoints, value=Checkpoints.sd15_analogMadness_v70, label="Checkpoint")
-        num_inference_steps = gr.Number(
-            30, label="Steps", minimum=1, maximum=100, step=1)
-        guidance_scale = gr.Number(
-            8.0, label="Guidance Scale", minimum=0.0, maximum=20.0, step=0.1)
-
-    return checkpoint, num_inference_steps, guidance_scale
-
-
-def subtask_prompt_input_ui():
-    with gr.Column():
-        prompt = gr.Textbox("", label="Enter a prompt",
-                            placeholder="a photo of an astronaut riding a horse on mars", lines=3)
-        negative_prompt = gr.Textbox(
-            "", label="Enter a negative prompt", placeholder="low quality, lowres", lines=3)
-
-    return prompt, negative_prompt
-
-
-def subtask_pose_face_input_ui():
-    with gr.Row():
-        pose_image = gr.Image(label='Pose Image', type='filepath')
-        face_image = gr.Image(label='Face Image', type='filepath')
-
-    return pose_image, face_image
 
 
 async def handle_pose_workflow_click(
@@ -78,12 +52,12 @@ def define_generate_with_pose_ui():
 
         with gr.Column():
             with gr.Accordion(label='Image Properties', open=False):
-                checkpoint, num_inference_steps, guidance_scale = subtask_image_generation_input_ui()
+                checkpoint, num_inference_steps, guidance_scale = define_model_input_ui()
 
             with gr.Accordion(label='Input'):
                 with gr.Column():
-                    pose_image, face_image = subtask_pose_face_input_ui()
-                    prompt, negative_prompt = subtask_prompt_input_ui()
+                    pose_image, face_image = define_pose_and_face_input_ui()
+                    prompt, negative_prompt = define_prompt_input_ui()
 
             generate_image = gr.Button("Generate Image")
             generate_upscaled_image = gr.Button(
@@ -157,13 +131,13 @@ def define_inpaint_ui():
                     begin_input_image = gr.Button(value="Begin Input Image")
 
             with gr.Accordion(label='Image Properties', open=False):
-                checkpoint, num_inference_steps, guidance_scale = subtask_image_generation_input_ui()
+                checkpoint, num_inference_steps, guidance_scale = define_model_input_ui()
 
             with gr.Accordion(label='Input', open=False):
                 with gr.Column():
                     input_image_mask = gr.ImageMask(
                         label='Input Image', type='filepath')
-                    prompt, negative_prompt = subtask_prompt_input_ui()
+                    prompt, negative_prompt = define_prompt_input_ui()
 
             inpaint_image = gr.Button("Inpaint")
 
