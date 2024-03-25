@@ -25,6 +25,11 @@ class ImageGenerationInput:
         self.guidance_scale = guidance_scale
 
 
+class ImageInput:
+    def __init__(self, image_path: str):
+        self.image_path = image_path
+
+
 class InpaintInput:
     def __init__(self, image_path: str, mask_path: str):
         self.image_path = image_path

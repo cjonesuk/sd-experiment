@@ -1,7 +1,7 @@
 import gradio as gr
 from modules.ui.inputs import define_prompt_input_ui, define_model_input_ui
-from modules.types import ImageGenerationInput, InpaintInput, PoseEstimationInput, UserInput
-from modules.workflows.inpainting import InpaintStages, run_inpaint_workflow
+from modules.types import ImageGenerationInput, ImageInput, InpaintInput, PoseEstimationInput, UserInput
+from modules.workflows.inpainting import InpaintStages, run_inpaint_upscale_workflow, run_inpaint_workflow
 
 # autopep8: off
 from comfy_script.runtime import *
@@ -27,9 +27,9 @@ async def handle_inpaint_click(stage: InpaintStages,
                                input_image_mask):
     user_input = UserInput(prompt, negative_prompt)
 
-    model_input = ImageGenerationInput(checkpoint,
-                                       num_inference_steps,
-                                       guidance_scale)
+    model_input = ImageGenerationInput(checkpoint=Checkpoints.sd15_analogMadness_v70_inpainting,
+                                       num_inference_steps=num_inference_steps,
+                                       guidance_scale=guidance_scale)
 
     pose_estimation_input = PoseEstimationInput(detect_body=True,
                                                 detect_face=True,
@@ -58,12 +58,32 @@ async def handle_accept_click(result_image: Image):
     }
 
 
-async def handle_upscale_click(result_image: Image):
-    pass
+async def handle_upscale_click(stage: InpaintStages,
+                               prompt,
+                               negative_prompt,
+                               checkpoint,
+                               num_inference_steps,
+                               guidance_scale,
+                               input_image):
+    user_input = UserInput(prompt, negative_prompt)
+
+    model_input = ImageGenerationInput(checkpoint=Checkpoints.sd15_analogMadness_v70,
+                                       num_inference_steps=num_inference_steps,
+                                       guidance_scale=guidance_scale)
+
+    image_input = ImageInput(input_image)
+
+    result_image = await run_inpaint_upscale_workflow(stage,
+                                                      user_input,
+                                                      model_input,
+                                                      image_input)
+
+    return result_image
 
 
 def define_inpaint_ui():
     inpaint_stage = gr.State(value=InpaintStages.INPAINT)
+    upscale_stage = gr.State(value=InpaintStages.UPSCALE)
 
     with gr.Tabs():
         with gr.Tab(label='Input'):
@@ -82,15 +102,20 @@ def define_inpaint_ui():
                 with gr.Column():
                     with gr.Group():
                         inpaint_image = gr.Button("Inpaint >>")
-                        input_image_mask = gr.ImageMask(
-                            label='Input Image', type='filepath')
+                        input_image_mask = gr.ImageMask(label='Input Image',
+                                                        type='filepath')
                         prompt, negative_prompt = define_prompt_input_ui()
 
                 with gr.Column():
                     with gr.Group():
                         result_accept = gr.Button('<< Accept Change')
-                        result_image = gr.Image(label='Generated Image', )
-                        upscale_accept = gr.Button('Upscale >>')
+                        result_image = gr.Image(label='Generated Image',
+                                                type='filepath')
+                        upscale_accept = gr.Button('Upscale V')
+
+                    with gr.Group():
+                        upscaled_image = gr.Image(label='Upscaled Image',
+                                                  type='filepath')
 
     begin_input_image.click(handle_begin_click,
                             inputs=[input_image],
@@ -108,4 +133,8 @@ def define_inpaint_ui():
                         outputs=[result_image])
 
     upscale_accept.click(handle_upscale_click,
-                         inputs=[result_image])
+                         inputs=[upscale_stage,
+                                 prompt, negative_prompt,
+                                 checkpoint, num_inference_steps, guidance_scale,
+                                 result_image],
+                         outputs=[upscaled_image])

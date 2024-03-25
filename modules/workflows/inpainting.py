@@ -5,11 +5,12 @@ from modules.workflow_builders.ImageSaveStageBuilder import ImageSaveStageBuilde
 from modules.workflow_builders.ModelApplyStageBuilder import ModelApplyStageBuilder
 from modules.workflow_builders.PoseApplyStageBuilder import PoseApplyStageBuilder
 from modules.workflow_builders.UpscaleImageStageBuilder import UpscaleImageStageBuilder
-from modules.types import (InpaintInput,
+from modules.types import (ImageInput, InpaintInput,
                            ModelApplyStageOutput,
                            PoseEstimationInput,
                            ImageGenerationInput,
-                           UserInput)
+                           UserInput,
+                           seed)
 
 # # autopep8: off
 from comfy_script.runtime import Workflow, load
@@ -25,7 +26,13 @@ from comfy_script.runtime.nodes import (LoadImageMask,
                                         ControlNetApply,
                                         DWPreprocessor,
                                         ImageCompositeMasked,
-                                        GrowMask)
+                                        GrowMask,
+                                        InpaintModelConditioning,
+                                        UpscaleModelLoader,
+                                        UltimateSDUpscale,
+                                        Samplers,
+                                        Schedulers, 
+                                        RecommendedResCalc)
 # # autopep8: on
 
 
@@ -38,6 +45,7 @@ image_saving = ImageSaveStageBuilder()
 
 class InpaintStages(StrEnum):
     INPAINT = 'inpaint'
+    UPSCALE = 'upscale'
 
 
 async def run_inpaint_workflow(
@@ -93,10 +101,17 @@ async def run_inpaint_workflow(
                                        positive=conditioning,
                                        negative=models.negative)
 
-        latent = VAEEncodeForInpaint(pixels=resized_image,
-                                     mask=bigger_mask,
-                                     vae=models.vae,
-                                     grow_mask_by=6)
+        positive, negative, latent = InpaintModelConditioning(positive=models.positive,
+                                                              negative=models.negative,
+                                                              vae=models.vae,
+                                                              pixels=resized_image,
+                                                              mask=bigger_mask)
+
+        models = ModelApplyStageOutput(model=models.model,
+                                       clip=models.clip,
+                                       vae=models.vae,
+                                       positive=positive,
+                                       negative=negative)
 
         image_output = image_generation.inpaint(model_input=model_input,
                                                 models=models,
@@ -115,7 +130,7 @@ async def run_inpaint_workflow(
     result = wf.task.wait_result(image_preview)
     result_image = await result.get(0)
 
-    # print(wf.api_format_json())
+    print(wf.api_format_json())
 
     return result_image
 
@@ -124,8 +139,7 @@ async def run_inpaint_upscale_workflow(
         stage: InpaintStages,
         user_input: UserInput,
         model_input: ImageGenerationInput,
-        pose_estimation_input: PoseEstimationInput,
-        inpaint_input: InpaintInput,
+        image_input: ImageInput,
 ):
     print('run_inpaint_workflow at stage:', stage)
 
@@ -134,53 +148,31 @@ async def run_inpaint_upscale_workflow(
             user_input,
             model_input)
 
-        input_image, _ = LoadImageFromPath(image=inpaint_input.image_path)
-        input_mask_image = LoadImageMask(image=inpaint_input.mask_path)
+        input_image, _ = LoadImageFromPath(image=image_input.image_path)
 
-        input_mask_image_inverted = InvertMask(mask=input_mask_image)
+        upscale_model = UpscaleModelLoader(model_name='RealESRGAN_x4plus.pth')
 
-        resized_image, resized_mask = ImageResize(pixels=input_image,
-                                                  mask_optional=input_mask_image_inverted,
-                                                  action='resize only',
-                                                  smaller_side=0,
-                                                  larger_side=768,
-                                                  scale_factor=0.0,
-                                                  resize_mode='any',
-                                                  crop_pad_position=0.5,
-                                                  pad_feathering=20)
+        # des = RecommendedResCalc(desiredXSIZE=)
 
-        dw_img, _ = DWPreprocessor(image=input_image,
-                                   detect_face=pose_estimation_input.detect_face,
-                                   detect_body=pose_estimation_input.detect_body,
-                                   detect_hand=pose_estimation_input.detect_hands,
-                                   resolution=512)
+        upscaled_image = UltimateSDUpscale(image=input_image,
+                                           model=models.model,
+                                           positive=models.positive,
+                                           negative=models.negative,
+                                           vae=models.vae,
+                                           upscale_by=1.5,
+                                           seed=seed,
+                                           steps=40,
+                                           cfg=8.5,
+                                           sampler_name=Samplers.dpmpp_2m_sde_gpu,
+                                           scheduler=Schedulers.karras,
+                                           denoise=0.15,
+                                           upscale_model=upscale_model,
+                                           tile_width=768,
+                                           tile_height=768,)
 
-        control_net_model = ControlNetLoader(
-            control_net_name=ControlNets.control_v11p_sd15_openpose_fp16)
+        upscaled_image_preview = PreviewImage(images=upscaled_image)
 
-        conditioning = ControlNetApply(conditioning=models.positive,
-                                       control_net=control_net_model,
-                                       image=dw_img,
-                                       strength=0.5)
-
-        models = ModelApplyStageOutput(model=models.model,
-                                       clip=models.clip,
-                                       vae=models.vae,
-                                       positive=conditioning,
-                                       negative=models.negative)
-
-        latent = VAEEncodeForInpaint(pixels=resized_image,
-                                     mask=resized_mask,
-                                     vae=models.vae,
-                                     grow_mask_by=20)
-
-        image_output = image_generation.inpaint(model_input=model_input,
-                                                models=models,
-                                                latent_input=latent)
-
-        image_preview = PreviewImage(images=image_output.image)
-
-    result = wf.task.wait_result(image_preview)
+    result = wf.task.wait_result(upscaled_image_preview)
     result_image = await result.get(0)
 
     # print(wf.api_format_json())

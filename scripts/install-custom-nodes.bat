@@ -14,5 +14,8 @@ git clone https://github.com/BadCafeCode/masquerade-nodes-comfyui.git
 
 git clone https://github.com/Fannovel16/comfyui_controlnet_aux.git
 
+git clone https://github.com/ssitu/ComfyUI_UltimateSDUpscale --recursive
+
+git clone https://github.com/marhensa/sdxl-recommended-res-calc
 
 cd ..

@@ -1,21 +1,21 @@
 from modules.types import ImageGenerationInput, ImageStageOutput, ModelApplyStageOutput, seed
 
 
-from comfy_script.runtime.nodes import EmptyLatentImage, KSamplerAdvanced, Latent, LatentUpscaleBy, PreviewImage, VAEDecode
+from comfy_script.runtime.nodes import EmptyLatentImage, KSampler,  KSamplerAdvanced,  Latent, LatentUpscaleBy, PreviewImage, VAEDecode, Samplers, Schedulers
 
 
 class ImageGenerationStageBuilder:
     def inpaint(self, model_input: ImageGenerationInput, models: ModelApplyStageOutput, latent_input: Latent):
-        latent = KSamplerAdvanced(model=models.model,
-                                  noise_seed=seed,
-                                  steps=model_input.num_inference_steps,
-                                  cfg=model_input.guidance_scale,
-                                  sampler_name='euler',
-                                  scheduler='normal',
-                                  positive=models.positive,
-                                  negative=models.negative,
-                                  latent_image=latent_input,
-                                  end_at_step=model_input.num_inference_steps)
+        latent = KSampler(model=models.model,
+                          seed=seed,
+                          steps=model_input.num_inference_steps,
+                          cfg=model_input.guidance_scale,
+                          sampler_name=Samplers.dpmpp_2m_sde_gpu,
+                          scheduler=Schedulers.karras,
+                          positive=models.positive,
+                          negative=models.negative,
+                          latent_image=latent_input,
+                          denoise=1.0)
 
         output_image = VAEDecode(latent, models.vae)
         PreviewImage(output_image)
