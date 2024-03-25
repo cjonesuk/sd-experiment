@@ -1,8 +1,5 @@
 
 from strenum import StrEnum
-from custom_nodes.comfyui_controlnet_aux.src.controlnet_aux.mesh_graphormer.depth_preprocessor import Preprocessor
-from modules.workflow_builders.FaceIdApplyStageBuilder import FaceIdApplyStageBuilder
-from modules.workflow_builders.FacePreparationStageBuilder import FacePreparationStageBuilder
 from modules.workflow_builders.ImageGenerationStageBuilder import ImageGenerationStageBuilder
 from modules.workflow_builders.ImageSaveStageBuilder import ImageSaveStageBuilder
 from modules.workflow_builders.ModelApplyStageBuilder import ModelApplyStageBuilder
@@ -16,12 +13,13 @@ from modules.types import (FaceInput,
                            UserInput
                            )
 # # autopep8: off
-from comfy_script.runtime import Workflow, load
+from comfy_script.runtime import Workflow, load, Result
 load()
 from comfy_script.runtime.nodes import (LoadImageMask, 
                                         LoadImageFromPath, 
                                         InvertMask, 
                                         ImageResize, 
+                                        PreviewImage,
                                         VAEEncodeForInpaint, 
                                         SaveImage, 
                                         ControlNetLoader, 
@@ -100,10 +98,11 @@ async def run_inpaint_workflow(
                                                 models=models,
                                                 latent_input=latent)
 
-        image_batch = SaveImage(images=image_output.image,
-                                filename_prefix='test')
+        image_preview = PreviewImage(images=image_output.image)
+
+    result = wf.task.wait_result(image_preview)
+    result_image = await result.get(0)
 
     # print(wf.api_format_json())
-    result_image = await image_batch.wait().get(0)
 
     return result_image

@@ -89,8 +89,7 @@ def define_inpaint_ui():
 
     begin_input_image.click(handle_begin_click,
                             inputs=[input_image],
-                            outputs=[input_image_mask]
-                            )
+                            outputs=[input_image_mask])
 
     result_accept.click(handle_accept_click,
                         inputs=[result_image],
