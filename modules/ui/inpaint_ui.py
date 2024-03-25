@@ -58,6 +58,10 @@ async def handle_accept_click(result_image: Image):
     }
 
 
+async def handle_upscale_click(result_image: Image):
+    pass
+
+
 def define_inpaint_ui():
     inpaint_stage = gr.State(value=InpaintStages.INPAINT)
 
@@ -86,6 +90,7 @@ def define_inpaint_ui():
                     with gr.Group():
                         result_accept = gr.Button('<< Accept Change')
                         result_image = gr.Image(label='Generated Image', )
+                        upscale_accept = gr.Button('Upscale >>')
 
     begin_input_image.click(handle_begin_click,
                             inputs=[input_image],
@@ -101,3 +106,6 @@ def define_inpaint_ui():
                                 checkpoint, num_inference_steps, guidance_scale,
                                 input_image_mask],
                         outputs=[result_image])
+
+    upscale_accept.click(handle_upscale_click,
+                         inputs=[result_image])
