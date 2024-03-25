@@ -40,12 +40,14 @@ async def handle_inpaint_click(stage: InpaintStages,
 
     inpaint_input = InpaintInput(image, image_mask)
 
-    return await run_inpaint_workflow(
+    result_image = await run_inpaint_workflow(
         stage,
         user_input,
         model_input,
         pose_estimation_input,
         inpaint_input)
+
+    return result_image
 
 
 async def handle_accept_click(result_image: Image):
@@ -67,23 +69,23 @@ def define_inpaint_ui():
                         label='Input Image', type='filepath')
                     begin_input_image = gr.Button(value="Begin Input Image")
 
-            with gr.Accordion(label='Image Properties', open=False):
-                checkpoint, num_inference_steps, guidance_scale = define_model_input_ui()
-
         with gr.Tab('Inpaint'):
+            with gr.Row():
+                with gr.Accordion(label='Image Properties', open=False):
+                    checkpoint, num_inference_steps, guidance_scale = define_model_input_ui()
+
             with gr.Row():
                 with gr.Column():
                     with gr.Group():
+                        inpaint_image = gr.Button("Inpaint >>")
                         input_image_mask = gr.ImageMask(
                             label='Input Image', type='filepath')
                         prompt, negative_prompt = define_prompt_input_ui()
 
-                        inpaint_image = gr.Button("Inpaint")
-
                 with gr.Column():
                     with gr.Group():
+                        result_accept = gr.Button('<< Accept Change')
                         result_image = gr.Image(label='Generated Image', )
-                        result_accept = gr.Button('Accept Change')
 
     begin_input_image.click(handle_begin_click,
                             inputs=[input_image],
